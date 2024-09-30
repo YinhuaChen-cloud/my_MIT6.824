@@ -5,7 +5,7 @@ import "log"
 import "net/rpc"
 import "hash/fnv"
 
-
+// 定义一个结构体类型：两个字符串变量，一个名为 Key，一个名为 Value 
 //
 // Map functions return a slice of KeyValue.
 //

@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash  
+# 表示使用环境变量中的bash解释器来运行该脚本。这样可以确保脚本在不同系统上找到正确的bash路径。
 
 #
 # basic map-reduce test
@@ -6,15 +7,26 @@
 
 #RACE=
 
+# go build -race -buildmode=plugin ../mrapps/wc.go
+# go build: go 语言构建命令，用于编译 go 源码文件
+# -race: 这个标志启用竞态检测，帮助你检测程序中可能的竞争条件（即多个goroutine同时访问共享数据）。
+# -buildmode=plugin: 这个标志指定构建模式为插件，意味着生成的文件可以作为动态库被其他Go程序加载。
+# ../mrapps/wc.go: 这是要编译的Go源文件的路径，在这里是相对路径，指向名为wc.go的文件，该文件通常是字数统计的实现。
+# 整体来说，这个命令会编译wc.go文件，生成一个可以动态加载的插件，并启用竞态检测功能。
+
 # comment this to run the tests without the Go race detector.
 RACE=-race
 
+# mr-tmp 应该是用来存放临时文件的, mr 是 MapReduce 的缩写
 # run the test in a fresh sub-directory.
 rm -rf mr-tmp
 mkdir mr-tmp || exit 1
 cd mr-tmp || exit 1
 rm -f mr-*
 
+# 使用 () 括起来的命令用于创建一个子shell。这样做的主要目的包括：
+# 隔离环境：在子shell中执行的命令不会影响当前 shell 的环境变量和工作目录。例如，在子shell中修改环境变量或目录不会影响父shell。
+# 下面的代码看起来是把 MapReduce apps 挨个编译成 .so 动态库
 # make sure software is freshly built.
 (cd ../../mrapps && go build $RACE -buildmode=plugin wc.go) || exit 1
 (cd ../../mrapps && go build $RACE -buildmode=plugin indexer.go) || exit 1
@@ -24,15 +36,19 @@ rm -f mr-*
 (cd ../../mrapps && go build $RACE -buildmode=plugin early_exit.go) || exit 1
 (cd ../../mrapps && go build $RACE -buildmode=plugin crash.go) || exit 1
 (cd ../../mrapps && go build $RACE -buildmode=plugin nocrash.go) || exit 1
+# CYHNO_TE: 为什么这里的编译不需要加 -buildmode=plugin ?
+# 仔细看了一下，下面这三个 go 文件都是有 main 函数的
 (cd .. && go build $RACE mrcoordinator.go) || exit 1
 (cd .. && go build $RACE mrworker.go) || exit 1
 (cd .. && go build $RACE mrsequential.go) || exit 1
 
+# 这个变量估计是任意一个测试 Failed 了都会被设置为 1，作为全局测试是否通过的判断标准
 failed_any=0
 
 #########################################################
 # first word-count
 
+# mrsequential 这个可执行文件是怎么被实现、编译的？
 # generate the correct output
 ../mrsequential ../../mrapps/wc.so ../pg*txt || exit 1
 sort mr-out-0 > mr-correct-wc.txt
