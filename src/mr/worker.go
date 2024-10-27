@@ -1,5 +1,6 @@
 package mr
 
+import "6.824/debug"
 import "fmt"
 import "log"
 import "net/rpc"
@@ -32,19 +33,37 @@ func Worker(mapf func(string, string) []KeyValue,
 	reducef func(string, []string) string) {
 
 	// Your worker implementation here.
+	askForTask()
 
 	// uncomment to send the Example RPC to the coordinator.
 	// CallExample()
 
 }
 
+// 向 coordinator 请求任务
+// 返回 true 表示请求到了任务
+// 返回 false 表示没有请求到任务
+func askForTask() bool {
+    // machineID = IP地址 + PID
+	machineID := "wudi"
+    // 用来储存 coordinator 返回的任务
+	reply := Task{}
+	// send the RPC request, wait for the reply.
+	retval := call("Coordinator.AssignTask", machineID, &reply)
+    debug.Assert(retval, "do not consider rpc failure yet")
+
+
+
+    // TODO: here 需要把 Machine 的 IP地址 + PID 作为 machineID
+    return true
+}
+
 //
 // example function to show how to make an RPC call to the coordinator.
 //
 // the RPC argument and reply types are defined in rpc.go.
-//
+// checked
 func CallExample() {
-
 	// declare an argument structure.
 	args := ExampleArgs{}
 
@@ -65,7 +84,7 @@ func CallExample() {
 // send an RPC request to the coordinator, wait for the response.
 // usually returns true.
 // returns false if something goes wrong.
-//
+// checked
 func call(rpcname string, args interface{}, reply interface{}) bool {
 	// c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":1234")
 	sockname := coordinatorSock()

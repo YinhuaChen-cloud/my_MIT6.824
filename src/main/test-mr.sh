@@ -48,7 +48,8 @@ failed_any=0
 #########################################################
 # first word-count
 
-# mrsequential 这个可执行文件是怎么被实现、编译的？
+# 这一步的目的是为了生成 mr-correct-wc.txt，一个正确的单词数量统计结果
+# mrsequential 只有一个map 和 一个reduce，串行执行
 # generate the correct output
 ../mrsequential ../../mrapps/wc.so ../pg*txt || exit 1
 sort mr-out-0 > mr-correct-wc.txt
@@ -84,6 +85,7 @@ fi
 
 # wait for remaining workers and coordinator to exit.
 wait
+exit
 
 #########################################################
 # now indexer
